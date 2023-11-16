@@ -1,5 +1,6 @@
 package com.srepinet.pockerplanningapp.controller;
 
+import com.srepinet.pockerplanningapp.dto.EndVotingDto;
 import com.srepinet.pockerplanningapp.dto.VoteDto;
 import com.srepinet.pockerplanningapp.service.VoteService;
 import jakarta.validation.Valid;
@@ -22,18 +23,14 @@ import java.util.List;
 public class VoteController {
     private final VoteService voteService;
 
-    @GetMapping
-    public ResponseEntity<List<VoteDto>> getAllVotes(@PathVariable Long sessionId) {
-        return ResponseEntity.ok(voteService.findAll(sessionId));
-    }
-
     @PostMapping
     public ResponseEntity<VoteDto> vote(@PathVariable Long sessionId, @Valid @RequestBody VoteDto voteDto) {
         return ResponseEntity.status(HttpStatus.CREATED).body(voteService.applyVote(sessionId, voteDto));
     }
 
     @PatchMapping
-    public ResponseEntity<List<VoteDto>> endVoting(@PathVariable Long sessionId, @RequestBody VoteDto voteDto) {
-        return ResponseEntity.ok(voteService.endVoting(sessionId, voteDto));
+    public ResponseEntity<List<VoteDto>> endVoting(@PathVariable Long sessionId,
+                                                   @Valid @RequestBody EndVotingDto endVotingDto) {
+        return ResponseEntity.ok(voteService.endVoting(sessionId, endVotingDto));
     }
 }

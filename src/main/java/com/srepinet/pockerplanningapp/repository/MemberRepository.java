@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface MemberRepository extends JpaRepository<Member, Long> {
-    List<Member> findBySessionId(Long sessionId);
+//    List<Member> findBySessionId(Long sessionId);
 
-    Optional<Member> findBySessionIdAndId(Long sessionId, Long id);
+//    Optional<Member> findBySessionIdAndId(Long sessionId, Long id);
 }

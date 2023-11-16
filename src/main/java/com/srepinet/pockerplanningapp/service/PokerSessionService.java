@@ -23,8 +23,8 @@ public class PokerSessionService {
                 .toList();
     }
 
-    public PokerSessionDto getSessionDtoById(Long id) {
-        return pokerSessionMapper.pokerSessionToDto(getSessionById(id));
+    public PokerSessionDto getSessionDtoById(Long sessionId) {
+        return pokerSessionMapper.pokerSessionToDto(getSessionById(sessionId));
     }
 
     public PokerSession getSessionById(Long id) {
@@ -35,9 +35,12 @@ public class PokerSessionService {
         return pokerSessionMapper.pokerSessionToDto(repository.save(pokerSessionMapper.dtoToPokerSession(sessionDto)));
     }
 
-    public void delete(Long id) {
-        PokerSession session = repository.findById(id).orElseThrow();
+    public void delete(Long sessionId) {
+        PokerSession session = repository.findById(sessionId).orElseThrow();
         repository.delete(session);
-        return;
+    }
+
+    public void saveSession(PokerSession session) {
+        repository.save(session);
     }
 }

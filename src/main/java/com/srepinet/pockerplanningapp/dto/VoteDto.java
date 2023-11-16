@@ -22,4 +22,7 @@ public class VoteDto {
 
     @NotNull
     private Integer voteResult;
+
+
+    private Boolean isLastVote;
 }

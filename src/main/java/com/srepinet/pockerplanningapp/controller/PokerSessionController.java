@@ -28,9 +28,9 @@ public class PokerSessionController {
         return ResponseEntity.ok(sessions);
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<PokerSessionDto> getSession(@PathVariable Long id) {
-        PokerSessionDto session = pokerSessionService.getSessionDtoById(id);
+    @GetMapping("/{sessionId}")
+    public ResponseEntity<PokerSessionDto> getSession(@PathVariable Long sessionId) {
+        PokerSessionDto session = pokerSessionService.getSessionDtoById(sessionId);
         return ResponseEntity.ok(session);
     }
 
@@ -40,9 +40,9 @@ public class PokerSessionController {
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity deleteSession(@PathVariable Long id) {
-        pokerSessionService.delete(id);
+    @DeleteMapping("/{sessionId}")
+    public ResponseEntity deleteSession(@PathVariable Long sessionId) {
+        pokerSessionService.delete(sessionId);
         return new ResponseEntity(HttpStatus.OK);
     }
 }

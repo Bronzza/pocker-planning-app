@@ -36,21 +36,22 @@ public class UserStoryController {
                 .body(userStoryService.createStory(sessionId, userStory));
     }
 
-    @PatchMapping("/{id}")
-    public ResponseEntity<UserStoryDto> updateStory(@PathVariable Long sessionId, @PathVariable Long id,
+    @PutMapping("/{storyId}")
+    public ResponseEntity<UserStoryDto> updateStory(@PathVariable Long sessionId, @PathVariable Long storyId,
                                                     @Valid @RequestBody UserStoryDto userStoryDto) {
-        return ResponseEntity.ok().body(userStoryService.updateUserStory(sessionId, id, userStoryDto));
+        return ResponseEntity.ok().body(userStoryService.saveAndMapToDto(sessionId, storyId, userStoryDto));
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity startVotingStory(@PathVariable Long sessionId, @PathVariable Long id) {
-        userStoryService.startVotingStory(sessionId, id);
+    @PatchMapping("/{storyId}")
+    public ResponseEntity startVotingStory(@PathVariable Long sessionId, @PathVariable Long storyId) {
+        userStoryService.startVotingStory(sessionId, storyId);
         return new ResponseEntity(HttpStatus.OK);
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity deleteStory(@PathVariable Long sessionId, @PathVariable Long id) {
-        userStoryService.deleteUserStory(sessionId, id);
+
+    @DeleteMapping("/{storyId}")
+    public ResponseEntity deleteStory(@PathVariable Long sessionId, @PathVariable Long storyId) {
+        userStoryService.deleteUserStory(sessionId, storyId);
         return new ResponseEntity(HttpStatus.OK);
     }
 }

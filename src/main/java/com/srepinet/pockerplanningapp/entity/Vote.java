@@ -1,6 +1,7 @@
 package com.srepinet.pockerplanningapp.entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -10,6 +11,7 @@ import jakarta.persistence.ManyToOne;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.Cascade;
 
 @Entity
 @Data
@@ -20,14 +22,18 @@ public class Vote {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private Long memberId;
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name="member_id")
+    private Member member;
 
-    private Long userStoryId;
+    @ManyToOne (cascade = CascadeType.ALL)
+    @JoinColumn(name="story_id")
+    private UserStory userStory;
 
     private Integer voteResult;
 
     @JsonBackReference
-    @ManyToOne
+    @ManyToOne (cascade = CascadeType.ALL)
     @JoinColumn(name = "session_id", nullable = false)
     private PokerSession session;
 

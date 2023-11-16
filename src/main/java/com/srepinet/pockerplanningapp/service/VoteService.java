@@ -1,5 +1,6 @@
 package com.srepinet.pockerplanningapp.service;
 
+import com.srepinet.pockerplanningapp.dto.EndVotingDto;
 import com.srepinet.pockerplanningapp.dto.VoteDto;
 import com.srepinet.pockerplanningapp.entity.PokerSession;
 import com.srepinet.pockerplanningapp.entity.UserStory;
@@ -15,55 +16,56 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class VoteService {
-    private final VoteRepository voteRepository;
     private final PokerSessionService pokerSessionService;
+    private final VoteRepository voteRepository;
     private final UserStoryService userStoryService;
-    private final MemberService memberService;
     private final VoteMapper voteMapper;
 
-    public List<VoteDto> findAll(Long sessionId) {
-        return voteRepository.findBySessionId(sessionId)
-                .stream()
-                .map(voteMapper::voteToDto)
-                .toList();
-    }
-
     public VoteDto applyVote(Long sessionId, VoteDto voteDto) {
-        PokerSession session = pokerSessionService.getSessionById(sessionId);
-
-        validateMember(sessionId, voteDto);
+        PokerSession sessionById = pokerSessionService.getSessionById(sessionId);
         validateUserStory(sessionId, voteDto);
 
         Vote voteToSave = voteMapper.dtoToVote(voteDto);
-        voteToSave.setSession(session);
+        voteToSave.setSession(sessionById);
 
-        return voteMapper.voteToDto(voteRepository.save(voteToSave));
+        VoteDto result = voteMapper.voteToDto(voteRepository.save(voteToSave));
+        result.setIsLastVote(checkIfLastVote(sessionId, voteDto));
+        return result;
+    }
+
+    private boolean checkIfLastVote(Long sessionId, VoteDto voteDto) {
+        long count = voteRepository.findAll().
+                stream()
+                .filter(vote -> vote.getUserStory().getId().equals(voteDto.getUserStoryId()))
+                .count();
+
+        long registeredMembers = userStoryService.findUserStory(voteDto.getUserStoryId())
+                .getMembers()
+                .stream()
+                .count();
+        return registeredMembers == count;
     }
 
     private void validateUserStory(Long sessionId, VoteDto voteDto) {
-        UserStory userStory = userStoryService.findUserStory(sessionId, voteDto.getUserStoryId());
+        UserStory userStory = userStoryService.findUserStory(voteDto.getUserStoryId());
 
         if (UserStoryStatus.VOTING != userStory.getStatus()) {
             throw new IllegalArgumentException("UserStory status is not " + UserStoryStatus.VOTING);
         }
     }
 
-    private void validateMember(Long sessionId, VoteDto voteDto) {
-        memberService.findMember(sessionId, voteDto.getMemberId());
-    }
-
-    public List<VoteDto>  endVoting(Long sessionId, VoteDto voteDto) {
+    public List<VoteDto> endVoting(Long sessionId, EndVotingDto voteDto) {
         updateStoryToVoted(sessionId, voteDto);
-        return  findAll(sessionId);
+        return voteRepository.findAll()
+                .stream()
+                .filter(vote -> vote.getUserStory().getId().equals(voteDto.getUserStoryId()))
+                .map(voteMapper::voteToDto)
+                .toList();
     }
 
-    private void updateStoryToVoted(Long sessionId, VoteDto voteDto) {
-        Long userStoryId = voteDto.getUserStoryId();
-        if (userStoryId == null) {
-            throw new IllegalArgumentException("User story id is not specified");
-        }
-        UserStory userStory = userStoryService.findUserStory(sessionId, voteDto.getUserStoryId());
+    private void updateStoryToVoted(Long sessionId, EndVotingDto endVotingDto) {
+        UserStory userStory = userStoryService.findUserStory(endVotingDto.getUserStoryId());
         userStory.setStatus(UserStoryStatus.VOTED);
-        userStoryService.updateUserStory(userStory);
+        userStoryService.saveAndMapToDto(userStory);
     }
 }
