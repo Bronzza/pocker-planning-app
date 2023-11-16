@@ -9,6 +9,7 @@ import com.srepinet.pockerplanningapp.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -21,21 +22,29 @@ public class MemberService {
     private final PokerSessionMapper pokerSessionMapper;
 
     public List<MemberDto> findAll(Long sessionId) {
-        PokerSession session = pokerSessionService.getSessionById(sessionId);
-        return memberRepository.findBySessionId(session.getId())
+//        PokerSession session = pokerSessionService.getSessionById(sessionId);
+        return memberRepository.findAll()
                 .stream()
+                .filter(member -> member.getSessions().stream().map(PokerSession::getId).toList().contains(sessionId))
                 .map(memberMapper::memberToDto)
                 .toList();
+
+//        return memberRepository.findBySessionId(session.getId())
+//                .stream()
+//                .map(memberMapper::memberToDto)
+//                .toList();
     }
 
     public Member findMember(Long sessionId, Long id) {
-        return memberRepository.findBySessionIdAndId(sessionId, id).orElseThrow();
+        return memberRepository.findById(id).orElseThrow();
     }
 
     public MemberDto joinSession(Long sessionId, MemberDto memberDto) {
         PokerSession session = pokerSessionService.getSessionById(sessionId);
         Member member = memberMapper.dtoToMember(memberDto);
-        member.setSession(session);
+        List<PokerSession> pokerSessions = new ArrayList<>();
+        pokerSessions.add(session);
+        member.setSessions(pokerSessions);
         return memberMapper.memberToDto(memberRepository.save(member));
     }
 

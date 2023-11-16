@@ -1,5 +1,6 @@
 package com.srepinet.pockerplanningapp.controller;
 
+import com.srepinet.pockerplanningapp.dto.MemberDto;
 import com.srepinet.pockerplanningapp.dto.UserStoryDto;
 import com.srepinet.pockerplanningapp.service.UserStoryService;
 import jakarta.validation.Valid;
@@ -36,15 +37,22 @@ public class UserStoryController {
                 .body(userStoryService.createStory(sessionId, userStory));
     }
 
-    @PatchMapping("/{id}")
+    @PutMapping("/{id}")
     public ResponseEntity<UserStoryDto> updateStory(@PathVariable Long sessionId, @PathVariable Long id,
                                                     @Valid @RequestBody UserStoryDto userStoryDto) {
         return ResponseEntity.ok().body(userStoryService.updateUserStory(sessionId, id, userStoryDto));
     }
 
-    @PutMapping("/{id}")
+    @PatchMapping("/{id}")
     public ResponseEntity startVotingStory(@PathVariable Long sessionId, @PathVariable Long id) {
         userStoryService.startVotingStory(sessionId, id);
+        return new ResponseEntity(HttpStatus.OK);
+    }
+
+    @PatchMapping("/{storyId}")
+    public ResponseEntity enterUserStoryByMember(@PathVariable Long sessionId, @PathVariable Long storyId, @RequestBody
+                                                 MemberDto memberDto) {
+        userStoryService.enterStory(sessionId, storyId, memberDto);
         return new ResponseEntity(HttpStatus.OK);
     }
 

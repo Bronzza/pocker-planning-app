@@ -1,16 +1,23 @@
 package com.srepinet.pockerplanningapp.service;
 
+import com.srepinet.pockerplanningapp.dto.MemberDto;
 import com.srepinet.pockerplanningapp.dto.UserStoryDto;
+import com.srepinet.pockerplanningapp.entity.Member;
 import com.srepinet.pockerplanningapp.entity.PokerSession;
 import com.srepinet.pockerplanningapp.entity.UserStory;
 import com.srepinet.pockerplanningapp.entity.enums.UserStoryStatus;
+import com.srepinet.pockerplanningapp.mapper.MemberMapper;
 import com.srepinet.pockerplanningapp.mapper.UserStoriesMapper;
 import com.srepinet.pockerplanningapp.repository.UserStoryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Optional;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -19,25 +26,26 @@ public class UserStoryService {
     private final UserStoryRepository userStoryRepository;
     private final PokerSessionService pokerSessionService;
     private final UserStoriesMapper userStoriesMapper;
+    private final MemberMapper memberMapper;
 
     public List<UserStoryDto> findAll(Long sessionId) {
-        List<UserStoryDto> userStories = userStoryRepository.findBySessionId(sessionId).stream()
+        return userStoryRepository.findAll()
+                .stream()
+                .filter(story -> story.getSessions().stream().map(PokerSession::getId).toList().contains(sessionId))
                 .map(userStoriesMapper::userStoryToDto)
                 .toList();
-        if (userStories.isEmpty()) {
-            throw new NoSuchElementException("No user stories found");
-        }
-        return userStories;
     }
 
     public UserStory findUserStory(Long sessionId, Long id) {
-        return userStoryRepository.findBySessionIdAndId(sessionId, id).orElseThrow();
+        return userStoryRepository.findById(id).orElseThrow();
     }
 
     public UserStoryDto createStory(Long sessionId, UserStoryDto userStoryDto) {
         PokerSession session = pokerSessionService.getSessionById(sessionId);
         UserStory storyToSave = userStoriesMapper.dtoToUserStory(userStoryDto);
-        storyToSave.setSession(session);
+        ArrayList<PokerSession> sessions = new ArrayList<>();
+        sessions.add(session);
+        storyToSave.setSessions(sessions);
         return userStoriesMapper.userStoryToDto(userStoryRepository.save(storyToSave));
     }
 
@@ -68,5 +76,24 @@ public class UserStoryService {
 
     public UserStoryDto updateUserStory(UserStory userStory) {
         return userStoriesMapper.userStoryToDto(userStoryRepository.save(userStory));
+    }
+
+    public void enterStory(Long sessionId, Long storyId, MemberDto memberDto) {
+        //todo can do session validation (if session exist)
+
+        Optional<UserStory> userStoryOptional = userStoryRepository.findById(storyId);
+        if (userStoryOptional.isPresent()) {
+            UserStory userStory = userStoryOptional.get();
+            Set<Member> members = userStory.getMembers();
+            if (members.isEmpty()) {
+                members = new HashSet<>();
+            }
+            members.add(memberMapper.dtoToMember(memberDto));
+            userStory.setMembers(members);
+            userStoryRepository.save(userStory);
+        } else {
+            throw new IllegalArgumentException("User story with doesn't exist");
+        }
+
     }
 }

@@ -38,6 +38,5 @@ public class PokerSessionService {
     public void delete(Long id) {
         PokerSession session = repository.findById(id).orElseThrow();
         repository.delete(session);
-        return;
     }
 }
